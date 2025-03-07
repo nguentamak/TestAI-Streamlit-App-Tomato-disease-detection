@@ -1,14 +1,33 @@
 import streamlit as st
-from PIL import Image
+import cv2
+import numpy as np
 
-st.title("📷 Capture d'image avec la caméra")
+# Fonction pour capturer la vidéo en continu
+def video_stream():
+    cap = cv2.VideoCapture(0)  # 0 pour la webcam par défaut
+    frame_window = st.image([])  # Widget pour afficher la vidéo
 
-# Widget de capture d'image
-image_file = st.camera_input("Prenez une photo")
+    stop_button = st.button("❌ Arrêter la caméra", key="stop_camera")  # Clé unique pour éviter l'erreur
 
-if image_file:
-    # Convertir l'image en format PIL
-    image = Image.open(image_file)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            st.error("Erreur lors de la capture vidéo.")
+            break
+        
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convertir BGR → RGB
+        frame_window.image(frame, channels="RGB")
 
-    # Afficher l'image capturée
-    st.image(image, caption="Image capturée", use_column_width=True)
+        # Vérifier si l'utilisateur a cliqué sur le bouton pour arrêter
+        if stop_button:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Interface Streamlit
+st.title("📷 Flux Vidéo en Temps Réel avec OpenCV")
+st.write("Cliquez sur le bouton ci-dessous pour démarrer le flux vidéo.")
+
+if st.button("▶️ Démarrer la caméra", key="start_camera"):
+    video_stream()

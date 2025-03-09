@@ -23,7 +23,7 @@ def video_stream():
             break
 
     cap.release()
-    cv2.destroyAllWindows()
+    cv2.waitKey(1)
 
 # Interface Streamlit
 st.title("📷 Flux Vidéo en Temps Réel avec OpenCV")

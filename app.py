@@ -2,32 +2,34 @@ import streamlit as st
 import cv2
 import numpy as np
 
-# Fonction pour capturer la vidéo en continu
-def video_stream():
-    cap = cv2.VideoCapture(0)  # 0 pour la webcam par défaut
-    frame_window = st.image([])  # Widget pour afficher la vidéo
+st.title("Détection des maladies de la tomate 🍅")
 
-    stop_button = st.button("❌ Arrêter la caméra", key="stop_camera")  # Clé unique pour éviter l'erreur
+# Activer/Désactiver la caméra
+if "camera_active" not in st.session_state:
+    st.session_state.camera_active = False
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Erreur lors de la capture vidéo.")
-            break
-        
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convertir BGR → RGB
-        frame_window.image(frame, channels="RGB")
+def toggle_camera():
+    st.session_state.camera_active = not st.session_state.camera_active
 
-        # Vérifier si l'utilisateur a cliqué sur le bouton pour arrêter
-        if stop_button:
-            break
+st.button("📷 Activer/Désactiver la caméra", on_click=toggle_camera)
 
-    cap.release()
-    cv2.waitKey(1)
+# Capture vidéo avec OpenCV
+if st.session_state.camera_active:
+    cap = cv2.VideoCapture(0)  # 0 pour la webcam
 
-# Interface Streamlit
-st.title("📷 Flux Vidéo en Temps Réel avec OpenCV")
-st.write("Cliquez sur le bouton ci-dessous pour démarrer le flux vidéo.")
+    if not cap.isOpened():
+        st.error("Impossible d'ouvrir la caméra")
+    else:
+        stframe = st.empty()  # Espace pour afficher la vidéo
 
-if st.button("▶️ Démarrer la caméra", key="start_camera"):
-    video_stream()
+        while st.session_state.camera_active:
+            ret, frame = cap.read()
+            if not ret:
+                st.error("Erreur de capture vidéo")
+                break
+
+            # Convertir en RGB pour Streamlit
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            stframe.image(frame, channels="RGB")
+
+        cap.release()
